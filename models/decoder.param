@@ -1,0 +1,237 @@
+7767517
+235 273
+Input                    image_embeddings         0 1 image_embeddings
+Input                    point_coords             0 1 point_coords
+Input                    point_labels1             0 1 point_labels1
+Input                    mask_input               0 1 mask_input
+Input                    has_mask_input           0 1 has_mask_input
+Input                    point_labels4            0 1 point_labels4
+Input                    point_labels5            0 1 point_labels5
+Input                    point_labels6            0 1 point_labels6
+Input                    point_labels2                  0 1 point_labels2
+Input                    point_labels3         0 1 point_labels3
+Split                    splitncnn_input9         1 2 has_mask_input has_mask_input.1_splitncnn_0 has_mask_input.1_splitncnn_1
+MemoryData               model.prompt_encoder.not_a_point_embed.weight 0 1 model.prompt_encoder.not_a_point_embed.weight 0=256 1=1
+MemoryData               model.prompt_encoder.point_embeddings.0.weight 0 1 model.prompt_encoder.point_embeddings.0.weight 0=256 1=1
+MemoryData               model.prompt_encoder.point_embeddings.1.weight 0 1 model.prompt_encoder.point_embeddings.1.weight 0=256 1=1
+MemoryData               model.prompt_encoder.point_embeddings.2.weight 0 1 model.prompt_encoder.point_embeddings.2.weight 0=256 1=1
+MemoryData               model.prompt_encoder.point_embeddings.3.weight 0 1 model.prompt_encoder.point_embeddings.3.weight 0=256 1=1
+MemoryData               onnx::Add_541            0 1 onnx::Add_541 0=256 1=4096
+Split                    splitncnn_0              1 5 onnx::Add_541 onnx::Add_541_splitncnn_0 onnx::Add_541_splitncnn_1 onnx::Add_541_splitncnn_2 onnx::Add_541_splitncnn_3 onnx::Add_541_splitncnn_4
+MemoryData               onnx::Concat_457         0 1 onnx::Concat_457 0=256 1=5
+MemoryData               onnx::Mul_1465           0 1 onnx::Mul_1465 0=1 1=1 2=256
+BinaryOp                 Add_21                   1 1 point_coords onnx::Div_325 1=1 2=5.000000e-01
+BinaryOp                 Div_23                   1 1 onnx::Div_325 point_coords.1 0=3 1=1 2=1.024000e+03
+BinaryOp                 Mul_25                   1 1 point_coords.1 onnx::Sub_329 0=2 1=1 2=2.000000e+00
+BinaryOp                 Sub_27                   1 1 onnx::Sub_329 onnx::MatMul_331 0=1 1=1 2=1.000000e+00
+InnerProduct             MatMul_28                1 1 onnx::MatMul_331 onnx::Mul_332 0=128 2=256
+BinaryOp                 Mul_30                   1 1 onnx::Mul_332 onnx::Sin_334 0=2 1=1 2=6.283185e+00
+Split                    splitncnn_1              1 2 onnx::Sin_334 onnx::Sin_334_splitncnn_0 onnx::Sin_334_splitncnn_1
+UnaryOp                  Sin_31                   1 1 onnx::Sin_334_splitncnn_1 onnx::Concat_335 0=9
+UnaryOp                  Cos_32                   1 1 onnx::Sin_334_splitncnn_0 onnx::Concat_336 0=10
+Concat                   Concat_33                2 1 onnx::Concat_335 onnx::Concat_336 onnx::Mul_337 0=-1
+BinaryOp                 Mul_34                   2 1 onnx::Mul_337 point_labels1 onnx::Add_338 0=2
+BinaryOp                 Mul_35                   2 1 point_labels2 model.prompt_encoder.not_a_point_embed.weight onnx::Add_339 0=2
+BinaryOp                 Add_36                   2 1 onnx::Add_338 onnx::Add_339 onnx::Add_340
+BinaryOp                 Mul_37                   2 1 point_labels3 model.prompt_encoder.point_embeddings.0.weight onnx::Add_341 0=2
+BinaryOp                 Add_38                   2 1 onnx::Add_340 onnx::Add_341 onnx::Add_342
+BinaryOp                 Mul_39                   2 1 point_labels4 model.prompt_encoder.point_embeddings.1.weight onnx::Add_343 0=2
+BinaryOp                 Add_40                   2 1 onnx::Add_342 onnx::Add_343 onnx::Add_344
+BinaryOp                 Mul_41                   2 1 point_labels5 model.prompt_encoder.point_embeddings.2.weight onnx::Add_345 0=2
+BinaryOp                 Add_42                   2 1 onnx::Add_344 onnx::Add_345 onnx::Add_346
+BinaryOp                 Mul_43                   2 1 point_labels6 model.prompt_encoder.point_embeddings.3.weight onnx::Add_347 0=2
+BinaryOp                 Add_44                   2 1 onnx::Add_346 onnx::Add_347 sparse_embedding
+Convolution              Conv_45                  1 1 mask_input onnx::Reshape_349 0=4 1=2 3=2 5=1 6=16
+Reshape                  Reshape_46               1 1 onnx::Reshape_349 onnx::Transpose_358 0=-1 1=4
+Permute                  Transpose_47             1 1 onnx::Transpose_358 onnx::ReduceMean_359 0=1
+LayerNorm                Add_58                   1 1 onnx::ReduceMean_359 onnx::Reshape_370 0=4 1=1.000000e-06
+Reshape                  Reshape_59               1 1 onnx::Reshape_370 onnx::Transpose_376 0=4 1=128 2=128
+Permute                  Transpose_60             1 1 onnx::Transpose_376 onnx::Div_377 0=4
+GELU                     GELU-0                   1 1 onnx::Div_377 input
+Convolution              Conv_69                  1 1 input onnx::Reshape_386 0=16 1=2 3=2 5=1 6=256
+Reshape                  Reshape_70               1 1 onnx::Reshape_386 onnx::Transpose_395 0=-1 1=16
+Permute                  Transpose_71             1 1 onnx::Transpose_395 onnx::ReduceMean_396 0=1
+LayerNorm                Add_82                   1 1 onnx::ReduceMean_396 onnx::Reshape_407 0=16 1=1.000000e-06
+Reshape                  Reshape_83               1 1 onnx::Reshape_407 onnx::Transpose_413 0=16 1=64 2=64
+Permute                  Transpose_84             1 1 onnx::Transpose_413 onnx::Div_414 0=4
+GELU                     GELU-1                   1 1 onnx::Div_414 input.4
+BinaryOp                 Sub_96                   1 1 has_mask_input.1_splitncnn_1 onnx::Mul_426 0=7 1=1 2=1.000000e+00
+BinaryOp                 Mul_97                   2 1 onnx::Mul_426 onnx::Mul_1465 onnx::Add_429 0=2
+Convolution              Conv_93                  1 1 input.4 onnx::Mul_423 0=256 1=1 5=1 6=4096
+Concat                   Concat_114               2 1 onnx::Concat_457 sparse_embedding onnx::MatMul_458
+Split                    splitncnn_2              1 9 onnx::MatMul_458 onnx::MatMul_458_splitncnn_0 onnx::MatMul_458_splitncnn_1 onnx::MatMul_458_splitncnn_2 onnx::MatMul_458_splitncnn_3 onnx::MatMul_458_splitncnn_4 onnx::MatMul_458_splitncnn_5 onnx::MatMul_458_splitncnn_6 onnx::MatMul_458_splitncnn_7 onnx::MatMul_458_splitncnn_8
+Slice                    Split_125                1 1 image_embeddings onnx::Unsqueeze_470 -23300=1,-233 1=-1
+ExpandDims               Unsqueeze_126            1 1 onnx::Unsqueeze_470 onnx::Expand_471 -23303=1,0
+Reshape                  Reshape_138              1 1 onnx::Expand_471 onnx::Concat_483 0=64 1=64 2=256
+Concat                   Concat_139               1 1 onnx::Concat_483 onnx::Add_484
+BinaryOp                 Mul_94                   2 1 has_mask_input.1_splitncnn_0 onnx::Mul_423 onnx::Add_424 0=2
+BinaryOp                 Add_98                   2 1 onnx::Add_424 onnx::Add_429 dense_embedding
+BinaryOp                 Add_140                  2 1 onnx::Add_484 dense_embedding onnx::Shape_485
+MultiHeadAttention       Add_216                  3 1 onnx::MatMul_458_splitncnn_8 onnx::MatMul_458_splitncnn_7 onnx::MatMul_458_splitncnn_6 input.8 0=256 1=8 2=65536 3=256 4=256
+LayerNorm                Add_227                  1 1 input.8 onnx::Add_611 0=256 1=1.000000e-05
+Split                    splitncnn_3              1 2 onnx::Add_611 onnx::Add_611_splitncnn_0 onnx::Add_611_splitncnn_1
+BinaryOp                 Add_228                  2 1 onnx::Add_611_splitncnn_1 onnx::MatMul_458_splitncnn_5 onnx::MatMul_612
+Reshape                  Reshape_185              1 1 onnx::Shape_485 onnx::Transpose_531 0=-1 1=256
+InnerProduct             MatMul_230               1 1 onnx::MatMul_612 q.3 0=128 1=1 2=32768
+Permute                  Transpose_186            1 1 onnx::Transpose_531 onnx::Add_532 0=1
+Split                    splitncnn_4              1 4 onnx::Add_532 onnx::Add_532_splitncnn_0 onnx::Add_532_splitncnn_1 onnx::Add_532_splitncnn_2 onnx::Add_532_splitncnn_3
+BinaryOp                 Add_229                  2 1 onnx::Add_532_splitncnn_3 onnx::Add_541_splitncnn_4 onnx::MatMul_613
+InnerProduct             MatMul_234               1 1 onnx::Add_532_splitncnn_2 v.3 0=128 1=1 2=32768
+Reshape                  Reshape_236              1 1 q.3 onnx::Transpose_632 0=16 1=8 2=-1
+Permute                  Transpose_237            1 1 onnx::Transpose_632 onnx::Div_633 0=2
+InnerProduct             MatMul_232               1 1 onnx::MatMul_613 k.3 0=128 1=1 2=32768
+Reshape                  Reshape_273              1 1 v.3 onnx::Transpose_673 0=16 1=8 2=4096
+Permute                  Transpose_274            1 1 onnx::Transpose_673 onnx::MatMul_674 0=2
+BinaryOp                 Div_276                  1 1 onnx::Div_633 onnx::MatMul_676 0=3 1=1 2=4.000000e+00
+Reshape                  Reshape_255              1 1 k.3 onnx::Transpose_653 0=16 1=8 2=4096
+Permute                  Transpose_277            1 1 onnx::Transpose_653 onnx::MatMul_677 0=3
+MatMul                     MatMul_278               2 1 onnx::MatMul_676 onnx::MatMul_677 onnx::Softmax_678
+Softmax                  Softmax_279              1 1 onnx::Softmax_678 onnx::MatMul_679 0=2 1=1
+MatMul                     MatMul_280               2 1 onnx::MatMul_679 onnx::MatMul_674 out.3
+Permute                  Transpose_293            1 1 out.3 onnx::Reshape_693 0=2
+Reshape                  Reshape_299              1 1 onnx::Reshape_693 onnx::MatMul_699 0=128 1=-1
+InnerProduct             MatMul_300               1 1 onnx::MatMul_699 onnx::Add_702 0=256 1=1 2=32768
+BinaryOp                 Add_302                  2 1 onnx::Add_611_splitncnn_0 onnx::Add_702 input.12
+LayerNorm                Add_313                  1 1 input.12 onnx::MatMul_714 0=256 1=1.000000e-05
+Split                    splitncnn_5              1 2 onnx::MatMul_714 onnx::MatMul_714_splitncnn_0 onnx::MatMul_714_splitncnn_1
+InnerProduct             MatMul_314               1 1 onnx::MatMul_714_splitncnn_1 onnx::MatMul_718 0=2048 1=1 2=524288 9=1
+InnerProduct             MatMul_317               1 1 onnx::MatMul_718 onnx::Add_721 0=256 1=1 2=524288
+BinaryOp                 Add_319                  2 1 onnx::MatMul_714_splitncnn_0 onnx::Add_721 input.20
+BinaryOp                 Add_332                  2 1 onnx::Add_532_splitncnn_1 onnx::Add_541_splitncnn_3 onnx::MatMul_735
+InnerProduct             MatMul_333               1 1 onnx::MatMul_735 q.7 0=128 1=1 2=32768
+LayerNorm                Add_330                  1 1 input.20 onnx::Add_733 0=256 1=1.000000e-05
+Split                    splitncnn_6              1 5 onnx::Add_733 onnx::Add_733_splitncnn_0 onnx::Add_733_splitncnn_1 onnx::Add_733_splitncnn_2 onnx::Add_733_splitncnn_3 onnx::Add_733_splitncnn_4
+BinaryOp                 Add_331                  2 1 onnx::Add_733_splitncnn_4 onnx::MatMul_458_splitncnn_4 onnx::MatMul_734
+InnerProduct             MatMul_337               1 1 onnx::Add_733_splitncnn_3 v.7 0=128 1=1 2=32768
+Reshape                  Reshape_356              1 1 q.7 onnx::Transpose_764 0=16 1=8 2=4096
+Permute                  Transpose_357            1 1 onnx::Transpose_764 onnx::Div_765 0=2
+InnerProduct             MatMul_335               1 1 onnx::MatMul_734 k.7 0=128 1=1 2=32768
+Reshape                  Reshape_393              1 1 v.7 onnx::Transpose_805 0=16 1=8 2=-1
+Permute                  Transpose_394            1 1 onnx::Transpose_805 onnx::MatMul_806 0=2
+BinaryOp                 Div_396                  1 1 onnx::Div_765 onnx::MatMul_808 0=3 1=1 2=4.000000e+00
+Reshape                  Reshape_375              1 1 k.7 onnx::Transpose_785 0=16 1=8 2=-1
+Permute                  Transpose_397            1 1 onnx::Transpose_785 onnx::MatMul_809 0=3
+MatMul                     MatMul_398               2 1 onnx::MatMul_808 onnx::MatMul_809 onnx::Softmax_810
+Softmax                  Softmax_399              1 1 onnx::Softmax_810 onnx::MatMul_811 0=2 1=1
+MatMul                     MatMul_400               2 1 onnx::MatMul_811 onnx::MatMul_806 out.7
+Permute                  Transpose_413            1 1 out.7 onnx::Reshape_825 0=2
+Reshape                  Reshape_419              1 1 onnx::Reshape_825 onnx::MatMul_831 0=128 1=4096
+InnerProduct             MatMul_420               1 1 onnx::MatMul_831 onnx::Add_834 0=256 1=1 2=32768
+BinaryOp                 Add_422                  2 1 onnx::Add_532_splitncnn_0 onnx::Add_834 input.24
+BinaryOp                 Add_434                  2 1 onnx::Add_733_splitncnn_2 onnx::MatMul_458_splitncnn_3 onnx::MatMul_847
+Split                    splitncnn_7              1 2 onnx::MatMul_847 onnx::MatMul_847_splitncnn_0 onnx::MatMul_847_splitncnn_1
+MultiHeadAttention       Add_523                  3 1 onnx::MatMul_847_splitncnn_1 onnx::MatMul_847_splitncnn_0 onnx::Add_733_splitncnn_1 onnx::Add_946 0=256 1=8 2=65536 3=256 4=256
+BinaryOp                 Add_524                  2 1 onnx::Add_733_splitncnn_0 onnx::Add_946 input.28
+LayerNorm                Add_535                  1 1 input.28 onnx::Add_958 0=256 1=1.000000e-05
+Split                    splitncnn_8              1 2 onnx::Add_958 onnx::Add_958_splitncnn_0 onnx::Add_958_splitncnn_1
+BinaryOp                 Add_536                  2 1 onnx::Add_958_splitncnn_1 onnx::MatMul_458_splitncnn_2 onnx::MatMul_959
+InnerProduct             MatMul_538               1 1 onnx::MatMul_959 q.15 0=128 1=1 2=32768
+LayerNorm                Add_433                  1 1 input.24 onnx::Add_846 0=256 1=1.000000e-05
+Split                    splitncnn_9              1 4 onnx::Add_846 onnx::Add_846_splitncnn_0 onnx::Add_846_splitncnn_1 onnx::Add_846_splitncnn_2 onnx::Add_846_splitncnn_3
+BinaryOp                 Add_537                  2 1 onnx::Add_846_splitncnn_3 onnx::Add_541_splitncnn_2 onnx::MatMul_960
+InnerProduct             MatMul_542               1 1 onnx::Add_846_splitncnn_2 v.15 0=128 1=1 2=32768
+Reshape                  Reshape_561              1 1 q.15 onnx::Transpose_989 0=16 1=8 2=-1
+Permute                  Transpose_562            1 1 onnx::Transpose_989 onnx::Div_990 0=2
+InnerProduct             MatMul_540               1 1 onnx::MatMul_960 k.15 0=128 1=1 2=32768
+Reshape                  Reshape_598              1 1 v.15 onnx::Transpose_1030 0=16 1=8 2=4096
+Permute                  Transpose_599            1 1 onnx::Transpose_1030 onnx::MatMul_1031 0=2
+BinaryOp                 Div_601                  1 1 onnx::Div_990 onnx::MatMul_1033 0=3 1=1 2=4.000000e+00
+Reshape                  Reshape_580              1 1 k.15 onnx::Transpose_1010 0=16 1=8 2=4096
+Permute                  Transpose_602            1 1 onnx::Transpose_1010 onnx::MatMul_1034 0=3
+MatMul                     MatMul_603               2 1 onnx::MatMul_1033 onnx::MatMul_1034 onnx::Softmax_1035
+Softmax                  Softmax_604              1 1 onnx::Softmax_1035 onnx::MatMul_1036 0=2 1=1
+MatMul                     MatMul_605               2 1 onnx::MatMul_1036 onnx::MatMul_1031 out.15
+Permute                  Transpose_618            1 1 out.15 onnx::Reshape_1050 0=2
+Reshape                  Reshape_624              1 1 onnx::Reshape_1050 onnx::MatMul_1056 0=128 1=-1
+InnerProduct             MatMul_625               1 1 onnx::MatMul_1056 onnx::Add_1059 0=256 1=1 2=32768
+BinaryOp                 Add_627                  2 1 onnx::Add_958_splitncnn_0 onnx::Add_1059 input.32
+LayerNorm                Add_638                  1 1 input.32 onnx::MatMul_1071 0=256 1=1.000000e-05
+Split                    splitncnn_10             1 2 onnx::MatMul_1071 onnx::MatMul_1071_splitncnn_0 onnx::MatMul_1071_splitncnn_1
+InnerProduct             MatMul_639               1 1 onnx::MatMul_1071_splitncnn_1 onnx::MatMul_1075 0=2048 1=1 2=524288 9=1
+InnerProduct             MatMul_642               1 1 onnx::MatMul_1075 onnx::Add_1078 0=256 1=1 2=524288
+BinaryOp                 Add_644                  2 1 onnx::MatMul_1071_splitncnn_0 onnx::Add_1078 input.40
+BinaryOp                 Add_657                  2 1 onnx::Add_846_splitncnn_1 onnx::Add_541_splitncnn_1 onnx::MatMul_1092
+InnerProduct             MatMul_658               1 1 onnx::MatMul_1092 q.19 0=128 1=1 2=32768
+LayerNorm                Add_655                  1 1 input.40 onnx::Add_1090 0=256 1=1.000000e-05
+Split                    splitncnn_11             1 4 onnx::Add_1090 onnx::Add_1090_splitncnn_0 onnx::Add_1090_splitncnn_1 onnx::Add_1090_splitncnn_2 onnx::Add_1090_splitncnn_3
+BinaryOp                 Add_656                  2 1 onnx::Add_1090_splitncnn_3 onnx::MatMul_458_splitncnn_1 onnx::MatMul_1091
+InnerProduct             MatMul_662               1 1 onnx::Add_1090_splitncnn_2 v.19 0=128 1=1 2=32768
+Reshape                  Reshape_681              1 1 q.19 onnx::Transpose_1121 0=16 1=8 2=4096
+Permute                  Transpose_682            1 1 onnx::Transpose_1121 onnx::Div_1122 0=2
+InnerProduct             MatMul_660               1 1 onnx::MatMul_1091 k.19 0=128 1=1 2=32768
+Reshape                  Reshape_718              1 1 v.19 onnx::Transpose_1162 0=16 1=8 2=-1
+Permute                  Transpose_719            1 1 onnx::Transpose_1162 onnx::MatMul_1163 0=2
+BinaryOp                 Div_721                  1 1 onnx::Div_1122 onnx::MatMul_1165 0=3 1=1 2=4.000000e+00
+Reshape                  Reshape_700              1 1 k.19 onnx::Transpose_1142 0=16 1=8 2=-1
+Permute                  Transpose_722            1 1 onnx::Transpose_1142 onnx::MatMul_1166 0=3
+MatMul                     MatMul_723               2 1 onnx::MatMul_1165 onnx::MatMul_1166 onnx::Softmax_1167
+Softmax                  Softmax_724              1 1 onnx::Softmax_1167 onnx::MatMul_1168 0=2 1=1
+MatMul                     MatMul_725               2 1 onnx::MatMul_1168 onnx::MatMul_1163 out.19
+Permute                  Transpose_738            1 1 out.19 onnx::Reshape_1182 0=2
+Reshape                  Reshape_744              1 1 onnx::Reshape_1182 onnx::MatMul_1188 0=128 1=4096
+InnerProduct             MatMul_745               1 1 onnx::MatMul_1188 onnx::Add_1191 0=256 1=1 2=32768
+BinaryOp                 Add_747                  2 1 onnx::Add_846_splitncnn_0 onnx::Add_1191 input.44
+BinaryOp                 Add_759                  2 1 onnx::Add_1090_splitncnn_1 onnx::MatMul_458_splitncnn_0 onnx::MatMul_1204
+InnerProduct             MatMul_761               1 1 onnx::MatMul_1204 q.23 0=128 1=1 2=32768
+LayerNorm                Add_758                  1 1 input.44 onnx::Add_1203 0=256 1=1.000000e-05
+Split                    splitncnn_12             1 3 onnx::Add_1203 onnx::Add_1203_splitncnn_0 onnx::Add_1203_splitncnn_1 onnx::Add_1203_splitncnn_2
+BinaryOp                 Add_760                  2 1 onnx::Add_1203_splitncnn_2 onnx::Add_541_splitncnn_0 onnx::MatMul_1205
+InnerProduct             MatMul_765               1 1 onnx::Add_1203_splitncnn_1 v.23 0=128 1=1 2=32768
+Reshape                  Reshape_784              1 1 q.23 onnx::Transpose_1234 0=16 1=8 2=-1
+Permute                  Transpose_785            1 1 onnx::Transpose_1234 onnx::Div_1235 0=2
+InnerProduct             MatMul_763               1 1 onnx::MatMul_1205 k.23 0=128 1=1 2=32768
+Reshape                  Reshape_821              1 1 v.23 onnx::Transpose_1275 0=16 1=8 2=4096
+Permute                  Transpose_822            1 1 onnx::Transpose_1275 onnx::MatMul_1276 0=2
+BinaryOp                 Div_824                  1 1 onnx::Div_1235 onnx::MatMul_1278 0=3 1=1 2=4.000000e+00
+Reshape                  Reshape_803              1 1 k.23 onnx::Transpose_1255 0=16 1=8 2=4096
+Permute                  Transpose_825            1 1 onnx::Transpose_1255 onnx::MatMul_1279 0=3
+MatMul                     MatMul_826               2 1 onnx::MatMul_1278 onnx::MatMul_1279 onnx::Softmax_1280
+Softmax                  Softmax_827              1 1 onnx::Softmax_1280 onnx::MatMul_1281 0=2 1=1
+MatMul                     MatMul_828               2 1 onnx::MatMul_1281 onnx::MatMul_1276 out.23
+Permute                  Transpose_841            1 1 out.23 onnx::Reshape_1295 0=2
+Reshape                  Reshape_847              1 1 onnx::Reshape_1295 onnx::MatMul_1301 0=128 1=-1
+InnerProduct             MatMul_848               1 1 onnx::MatMul_1301 onnx::Add_1304 0=256 1=1 2=32768
+BinaryOp                 Add_850                  2 1 onnx::Add_1090_splitncnn_0 onnx::Add_1304 input.48
+LayerNorm                Add_861                  1 1 input.48 onnx::Gather_1316 0=256 1=1.000000e-05
+Split                    splitncnn_13             1 2 onnx::Gather_1316 onnx::Gather_1316_splitncnn_0 onnx::Gather_1316_splitncnn_1
+Permute                  Transpose_869            1 1 onnx::Add_1203_splitncnn_0 onnx::Reshape_1324 0=1
+Reshape                  Reshape_875              1 1 onnx::Reshape_1324 onnx::ConvTranspose_1330 0=64 1=64 2=256
+Deconvolution            ConvTranspose_876        1 1 onnx::ConvTranspose_1330 onnx::Shape_1331 0=64 1=2 3=2 5=1 6=65536
+Reshape                  Reshape_891              1 1 onnx::Shape_1331 onnx::Transpose_1348 0=-1 1=64
+Permute                  Transpose_892            1 1 onnx::Transpose_1348 onnx::ReduceMean_1349 0=1
+LayerNorm                Add_903                  1 1 onnx::ReduceMean_1349 onnx::Reshape_1360 0=64 1=1.000000e-06
+Reshape                  Reshape_909              1 1 onnx::Reshape_1360 onnx::Transpose_1366 0=64 1=128 2=128
+Permute                  Transpose_910            1 1 onnx::Transpose_1366 onnx::Div_1367 0=4
+GELU                     GELU-2                   1 1 onnx::Div_1367 onnx::ConvTranspose_1375
+Crop                     Slice_868                1 1 onnx::Gather_1316_splitncnn_1 onnx::Gather_1323 -23309=1,1 -23310=1,5 -23311=1,0
+Split                    splitncnn_14             1 4 onnx::Gather_1323 onnx::Gather_1323_splitncnn_0 onnx::Gather_1323_splitncnn_1 onnx::Gather_1323_splitncnn_2 onnx::Gather_1323_splitncnn_3
+Crop                     Gather_929               1 1 onnx::Gather_1323_splitncnn_3 onnx::Gemm_1386 -23309=1,0 -23310=1,1 -23311=1,0
+InnerProduct             Gemm_930                 1 1 onnx::Gemm_1386 onnx::Gemm_1388 0=256 1=1 2=65536 9=1
+InnerProduct             Gemm_932                 1 1 onnx::Gemm_1388 onnx::Gemm_1390 0=256 1=1 2=65536 9=1
+Crop                     Gather_936               1 1 onnx::Gather_1323_splitncnn_2 onnx::Gemm_1393 -23309=1,1 -23310=1,2 -23311=1,0
+InnerProduct             Gemm_937                 1 1 onnx::Gemm_1393 onnx::Gemm_1395 0=256 1=1 2=65536 9=1
+InnerProduct             Gemm_939                 1 1 onnx::Gemm_1395 onnx::Gemm_1397 0=256 1=1 2=65536 9=1
+InnerProduct             Gemm_941                 1 1 onnx::Gemm_1397 onnx::Unsqueeze_1398 0=32 1=1 2=8192
+Crop                     Gather_943               1 1 onnx::Gather_1323_splitncnn_1 onnx::Gemm_1400 -23309=1,2 -23310=1,3 -23311=1,0
+InnerProduct             Gemm_944                 1 1 onnx::Gemm_1400 onnx::Gemm_1402 0=256 1=1 2=65536 9=1
+InnerProduct             Gemm_946                 1 1 onnx::Gemm_1402 onnx::Gemm_1404 0=256 1=1 2=65536 9=1
+InnerProduct             Gemm_948                 1 1 onnx::Gemm_1404 onnx::Unsqueeze_1405 0=32 1=1 2=8192
+Crop                     Gather_950               1 1 onnx::Gather_1323_splitncnn_0 onnx::Gemm_1407 -23309=1,3 -23310=1,4 -23311=1,0
+InnerProduct             Gemm_951                 1 1 onnx::Gemm_1407 onnx::Gemm_1409 0=256 1=1 2=65536 9=1
+InnerProduct             Gemm_953                 1 1 onnx::Gemm_1409 onnx::Gemm_1411 0=256 1=1 2=65536 9=1
+InnerProduct             Gemm_955                 1 1 onnx::Gemm_1411 onnx::Unsqueeze_1412 0=32 1=1 2=8192
+InnerProduct             Gemm_934                 1 1 onnx::Gemm_1390 onnx::Unsqueeze_1391 0=32 1=1 2=8192
+ExpandDims               Unsqueeze_957            1 1 onnx::Unsqueeze_1398 onnx::Concat_1414 -23303=1,0
+ExpandDims               Unsqueeze_958            1 1 onnx::Unsqueeze_1405 onnx::Concat_1415 -23303=1,0
+ExpandDims               Unsqueeze_959            1 1 onnx::Unsqueeze_1412 onnx::Concat_1416 -23303=1,0
+ExpandDims               Unsqueeze_956            1 1 onnx::Unsqueeze_1391 onnx::Concat_1413 -23303=1,0
+Deconvolution            ConvTranspose_919        1 1 onnx::ConvTranspose_1375 onnx::Div_1376 0=32 1=2 3=2 5=1 6=8192
+Concat                   Concat_960               4 1 onnx::Concat_1413 onnx::Concat_1414 onnx::Concat_1415 onnx::Concat_1416 onnx::MatMul_1417
+GELU                     GELU-3                   1 1 onnx::Div_1376 onnx::Shape_1384
+Crop                     Gather_863               1 1 onnx::Gather_1316_splitncnn_0 onnx::Gemm_1318 -23309=1,0 -23310=1,1 -23311=1,0
+InnerProduct             Gemm_985                 1 1 onnx::Gemm_1318 onnx::Gemm_1445 0=256 1=1 2=65536 9=1
+InnerProduct             Gemm_987                 1 1 onnx::Gemm_1445 onnx::Gemm_1447 0=256 1=1 2=65536 9=1
+InnerProduct             Gemm_989                 1 1 onnx::Gemm_1447 scores 0=4 1=1 2=1024
+Reshape                  Reshape_978              1 1 onnx::Shape_1384 onnx::MatMul_1435 0=65536 1=32
+Gemm                     MatMul_979               2 1 onnx::MatMul_1417 onnx::MatMul_1435 onnx::Reshape_1436
+Reshape                  Reshape_984              1 1 onnx::Reshape_1436 masks 0=256 1=256 2=-1

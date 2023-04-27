@@ -8,6 +8,8 @@ a ncnn example of segment-anything
 ## model support:  
 1. ViT-B SAM model 
 
+models are available in [Baidu Pan](https://pan.baidu.com/s/15K_glUytv0A7qZFYpafsZw?pwd=naub) and [Google Drive](https://drive.google.com/drive/folders/1xo8DyWdeC_SNuz-K-Nm_E8C9OH3PcZ7S?usp=share_link)  
+
 ## Run  
 ```
 mkdir -p build
