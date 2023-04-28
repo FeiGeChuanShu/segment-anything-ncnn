@@ -1,5 +1,5 @@
 7767517
-235 273
+236 274
 Input                    image_embeddings         0 1 image_embeddings
 Input                    point_coords             0 1 point_coords
 Input                    point_labels1             0 1 point_labels1
@@ -234,4 +234,5 @@ InnerProduct             Gemm_987                 1 1 onnx::Gemm_1445 onnx::Gemm
 InnerProduct             Gemm_989                 1 1 onnx::Gemm_1447 scores 0=4 1=1 2=1024
 Reshape                  Reshape_978              1 1 onnx::Shape_1384 onnx::MatMul_1435 0=65536 1=32
 Gemm                     MatMul_979               2 1 onnx::MatMul_1417 onnx::MatMul_1435 onnx::Reshape_1436
-Reshape                  Reshape_984              1 1 onnx::Reshape_1436 masks 0=256 1=256 2=-1
+Reshape                  Reshape_984              1 1 onnx::Reshape_1436 masks1 0=256 1=256 2=-1
+Interp                   Resize_832               1 1 masks1 masks 0=2 1=4.000000e+00 2=4.000000e+00
