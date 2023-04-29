@@ -22,9 +22,9 @@ make
 ## Result   
 ### automatic_mask:  
 ![](result/automatic_mask.jpg)  
-### prompt points  
+### prompt points:  
 ![](result/point_res.jpg)  
-### prompt box  
+### prompt box:  
 ![](result/box_res.jpg)  
  
 
