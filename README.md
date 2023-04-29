@@ -20,7 +20,11 @@ make
 ```
 
 ## Result   
+### automatic_mask:  
+![](result/automatic_mask.jpg)  
+### prompt points  
 ![](result/point_res.jpg)  
+### prompt box  
 ![](result/box_res.jpg)  
  
 
