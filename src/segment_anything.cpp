@@ -1,9 +1,105 @@
-#include "segment_anything.h"
+#include "include/segment_anything.h"
+namespace sam{
 SegmentAnything::~SegmentAnything()
 {
     image_encoder_net_.clear();
     mask_decoder_net_.clear();
 }
+
+static inline float intersection_area(const sam_result_t& a, const sam_result_t& b)
+{
+    cv::Rect_<float> inter = a.box & b.box;
+    return inter.area();
+}
+
+static void qsort_descent_inplace(std::vector<sam_result_t>& faceobjects, int left, int right)
+{
+    int i = left;
+    int j = right;
+    float p = faceobjects[(left + right) / 2].iou_pred;
+
+    while (i <= j)
+    {
+        while (faceobjects[i].iou_pred > p)
+            i++;
+
+        while (faceobjects[j].iou_pred < p)
+            j--;
+
+        if (i <= j)
+        {
+            // swap
+            std::swap(faceobjects[i], faceobjects[j]);
+
+            i++;
+            j--;
+        }
+    }
+
+    #pragma omp parallel sections
+    {
+        #pragma omp section
+        {
+            if (left < j) qsort_descent_inplace(faceobjects, left, j);
+        }
+        #pragma omp section
+        {
+            if (i < right) qsort_descent_inplace(faceobjects, i, right);
+        }
+    }
+}
+
+static void qsort_descent_inplace(std::vector<sam_result_t>& faceobjects)
+{
+    if (faceobjects.empty())
+        return;
+
+    qsort_descent_inplace(faceobjects, 0, faceobjects.size() - 1);
+}
+
+static void nms_sorted_bboxes(const cv::Mat& bgr,const std::vector<sam_result_t>& faceobjects, std::vector<int>& picked, float nms_threshold)
+{
+    picked.clear();
+
+    const int n = faceobjects.size();
+
+    std::vector<float> areas(n);
+    for (int i = 0; i < n; i++)
+    {
+        areas[i] = faceobjects[i].box.area();
+    }
+    cv::Mat img = bgr.clone();
+    for (int i = 0; i < n; i++)
+    {
+        const sam_result_t& a = faceobjects[i];
+
+        int keep = 1;
+        for (int j = 0; j < (int)picked.size(); j++)
+        {
+            const sam_result_t& b = faceobjects[picked[j]];
+
+            // intersection over union
+            float inter_area = intersection_area(a, b);
+            float union_area = areas[i] + areas[picked[j]] - inter_area;
+            // float IoU = inter_area / union_area
+            if (inter_area / union_area > nms_threshold){
+                keep = 0;
+            }
+                
+        }
+
+        if (keep)
+            picked.push_back(i);
+    }
+}
+int SegmentAnything::NMS(const cv::Mat& bgr, std::vector<sam_result_t>& proposals, std::vector<int>& picked, float nms_threshold)
+{
+    qsort_descent_inplace(proposals);
+    nms_sorted_bboxes(bgr, proposals, picked, nms_threshold);
+    
+    return 0;
+}
+
 int SegmentAnything::Load(const std::string& image_encoder_param, const std::string& image_encoder_bin, const std::string& mask_decoder_param, const std::string& mask_decoder_bin)
 {
     int ret = 0;
@@ -88,7 +184,6 @@ int SegmentAnything::transform_coords(const image_info_t& image_info, ncnn::Mat&
 }
 int SegmentAnything::embed_points(const prompt_info_t& prompt_info, std::vector<ncnn::Mat>& point_labels, ncnn::Mat& point_coords)
 {
-    
     int num_points = prompt_info.points.size() / 2;
     point_coords = ncnn::Mat(num_points * 2, (void*)prompt_info.points.data()).reshape(2, num_points).clone();
 
@@ -149,10 +244,10 @@ int SegmentAnything::embed_points(const prompt_info_t& prompt_info, std::vector<
     point_labels.push_back(point_labels5);
     point_labels.push_back(point_labels6);
 
-
     return 0;
 }
-int SegmentAnything::MaskDecoder(const ncnn::Mat& image_embeddings, image_info_t& image_info, const prompt_info_t& prompt_info, cv::Mat& single_mask)
+int SegmentAnything::MaskDecoder(const ncnn::Mat& image_embeddings, image_info_t& image_info, 
+    const prompt_info_t& prompt_info, std::vector<sam_result_t>& sam_results, float pred_iou_thresh, float stability_score_thresh)
 {
     std::vector<ncnn::Mat> point_labels;
     ncnn::Mat point_coords;
@@ -181,25 +276,86 @@ int SegmentAnything::MaskDecoder(const ncnn::Mat& image_embeddings, image_info_t
     ncnn::Mat masks;
     mask_decoder_ex.extract("masks", masks);
 
-
+    //postprocess
     std::vector<std::pair<float, int>> scores_vec;
-    for (int i = 0; i < scores.w; ++i) {
+    for (int i = 1; i < scores.w; ++i) {
         scores_vec.push_back(std::pair<float, int>(scores[i], i));
     }
+
     std::sort(scores_vec.begin(), scores_vec.end(), std::greater<std::pair<float, int>>());
 
-    ncnn::Mat mask = masks.channel(scores_vec[0].second);
+    if (scores_vec[0].first > pred_iou_thresh) {
+        sam_result_t sam_result;
+        ncnn::Mat mask = masks.channel(scores_vec[0].second);
+        cv::Mat cv_mask_32f = cv::Mat::zeros(cv::Size(mask.w, mask.h), CV_32F);
+        std::copy((float*)mask.data, (float*)mask.data + mask.w * mask.h, (float*)cv_mask_32f.data);
+        
+        cv::Mat single_mask_32f;
+        cv::resize(cv_mask_32f(cv::Rect(0, 0, image_info.pad_w, image_info.pad_h)), single_mask_32f, cv::Size(image_info.img_w,image_info.img_h), 0, 0, 1);
 
-    cv::Mat cv_mask_32f = cv::Mat::zeros(cv::Size(mask.w, mask.h), CV_32F);
-    std::copy((float*)mask.data, (float*)mask.data + mask.w * mask.h, (float*)cv_mask_32f.data);
-    
-    cv::Mat single_mask_32f;
-    cv::resize(cv_mask_32f(cv::Rect(0, 0, image_info.pad_w, image_info.pad_h)), single_mask_32f, cv::Size(image_info.img_w,image_info.img_h), 0, 0, 1);
+        float stable_score = calculate_stability_score(single_mask_32f);
+        if (stable_score < stability_score_thresh)
+            return -1;
 
-    single_mask_32f = single_mask_32f > 0;
-    single_mask_32f.convertTo(single_mask, CV_8UC1, 1, 0);
+        single_mask_32f = single_mask_32f > 0;
+        single_mask_32f.convertTo(sam_result.mask, CV_8UC1, 1, 0);
+        
+        if (postprocess_mask(sam_result.mask, sam_result.box) < 0)
+            return -1;
 
-    //cv::resize(cv_mask(cv::Rect(0, 0, image_info.pad_w / 4, image_info.pad_h / 4)), single_mask, cv::Size(image_info.img_w,image_info.img_h), 0, 0, cv::INTER_AREA);
+        sam_results.push_back(sam_result);
+    }
+    else {
+        return -1;
+    }
 
     return 0;
+}
+int SegmentAnything::postprocess_mask(cv::Mat& mask, cv::Rect& box)
+{
+    std::vector<std::vector<cv::Point>> contours;
+    std::vector<cv::Vec4i> hierarchy;
+    cv::findContours(mask.clone(), contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+    if(contours.size() == 0)
+        return -1;
+
+    if (contours.size() > 1) {
+        float max_area = 0;
+        int max_idx = 0;
+        std::vector<std::pair<float,int>> areas;
+        for (size_t i = 0; i < contours.size(); ++i) {
+            float area = cv::contourArea(contours[i]);
+            if (area > max_area) {
+                max_idx = i;
+                max_area = area;
+            }
+            areas.push_back(std::pair<float,int>(area,i));
+        }
+        
+        for (size_t i = 0; i < areas.size(); ++i) {
+            //if (i == max_idx)
+            //    continue;
+            //else {
+            //    cv::drawContours(mask, contours, i, cv::Scalar(0), -1);
+            //}
+            if(areas[i].first < max_area * 0.3){
+                cv::drawContours(mask, contours, i, cv::Scalar(0), -1);
+            }
+            else{
+                box = box | cv::boundingRect(contours[i]);
+            }
+        }
+    }
+    else {
+        box = cv::boundingRect(contours[0]);
+    }
+    return 0;
+}
+float SegmentAnything::calculate_stability_score(cv::Mat& mask, float mask_threshold, float stable_score_offset)
+{
+    float intersections = (float)cv::countNonZero(mask > (mask_threshold + stable_score_offset));
+    float unions = (float)cv::countNonZero(mask > (mask_threshold - stable_score_offset));
+    
+    return intersections / unions;
+}
 }

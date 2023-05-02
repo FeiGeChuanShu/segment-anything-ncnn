@@ -19,6 +19,25 @@ make
 ./ncnn_sam
 ```
 
+## time profile  
+```
+op type         avg time(ms)    %
+Reshape         4888.25         36.39%
+MatMul          2254.22         16.78%
+InnerProduct    1887.95         14.06%
+GELU            1856.38         13.82%
+BinaryOp        1375.26         10.24%
+Softmax         517.77          3.85%
+Permute         442.16          3.29%
+Crop            87.79           0.65%
+LayerNorm       64.74           0.48%
+Padding         36.62           0.27%
+Convolution     18.11           0.13%
+MemoryData      2.74            0.02%
+Split           0.00            0%
+total time:     13431.99
+```
+
 ## Result   
 ### automatic_mask:  
 ![](result/automatic_mask.jpg)  
