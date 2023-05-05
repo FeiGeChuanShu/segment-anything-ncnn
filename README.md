@@ -22,20 +22,20 @@ make
 ## time profile  
 ```
 op type         avg time(ms)    %
-Reshape         4888.25         36.39%
-MatMul          2254.22         16.78%
-InnerProduct    1887.95         14.06%
-GELU            1856.38         13.82%
-BinaryOp        1375.26         10.24%
-Softmax         517.77          3.85%
-Permute         442.16          3.29%
-Crop            87.79           0.65%
-LayerNorm       64.74           0.48%
-Padding         36.62           0.27%
-Convolution     18.11           0.13%
-MemoryData      2.74            0.02%
+MatMul          2268.23         21.14%
+Reshape         2199.36         20.51%
+InnerProduct    1899.4          17.71%
+GELU            1809.85         16.87%
+BinaryOp        1351.21         12.61%
+Softmax         513.15          4.78%
+Permute         442.24          4.12%
+Crop            106.28          0.99%
+LayerNorm       65.11           0.61%
+Padding         35.7            0.33%
+Convolution     34.43           0.32%
+MemoryData      2.76            0.03%
 Split           0.00            0%
-total time:     13431.99
+total time:     10727.72
 ```
 
 ## Result   
